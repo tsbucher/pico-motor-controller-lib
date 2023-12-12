@@ -35,7 +35,6 @@ EXCEPTIONS:
       see: https://github.com/raspberrypi/pico-examples
 - Stepper_Motor_PIO including this files: counter.pio, pacer.pio, stepper.pio, stepper_PIO.h
       Copyright (c) 2021 V. Hunter Adams
-      vha3@cornell.edu
       see: https://vanhunteradams.com/Pico/Steppers/Lorenz.html
 - stepper.h and stepper.c: Copyright (c) 2021 Antonio González
       see: https://github.com/antgon/pico-stepper
