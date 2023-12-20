@@ -133,6 +133,11 @@ void My_Platform_Test(void){
     /*******************************************************************************************************/ 
     #if (Use_DC_Motor & Use_Quadrature_Encoder)
     //DC-Motoren und Encoder Test   
+    #if Use_PID_Driver
+    //PID-Regler initalisiert
+    pid_drive1 = PID_drive_Deinit(pid_drive1);
+    pid_drive2 = PID_drive_Deinit(pid_drive2);
+    #endif
     printf("DC-Motoren und Encoder Test:\n");
     dcmotor_set(dcmotor1, Clockwise, 40000);
     printf("Motor uhrzeigersinn 40000\n");
@@ -167,6 +172,16 @@ void My_Platform_Test(void){
     /********************************************************************************************************/
     #if Use_PID_Driver
     //PID-Controller Test
+    #if Use_PID_Driver
+    //PID-Regler initalisiert
+    pid_drive1 = PID_drive_Init(dcmotor1, quadraturencoder_motor1);
+    if (pid_drive1 == NULL) printf("Error\n");
+    PID_drive_SetParameters_ideal(pid_drive1, PID_Kp, PID_Ti,0.005,PID_N);
+    pid_drive2 = PID_drive_Init(dcmotor2, quadraturencoder_motor2);
+    if (pid_drive2 == NULL) printf("Error\n");
+    PID_drive_SetParameters(pid_drive2, PID_Kp, PID_Ki,PID_Kd,PID_N);
+    printf("PID-Regler initalisiert\n");
+    #endif
     printf("PID-Regler Test:\n");
     PID_drive_SetSpeed(pid_drive1, 100);
     PID_drive_SetSpeed(pid_drive2, 100);
@@ -182,7 +197,6 @@ void My_Platform_Test(void){
         printf("speed2: %f\n", Quadratur_Encoder_get_speed(quadraturencoder_motor2));
         sleep_ms(100);
     }   
-    PID_drive_Deinit(pid_drive1);
     PID_drive_Deinit(pid_drive2);
     #endif
     /********************************************************************************************************/
@@ -246,7 +260,7 @@ void My_Platform_Test(void){
     for (size_t i = 0; i < 4; ){
         if(!stepper_is_moving(stepper1)){
             stepper_set_speed_rpm(stepper1, 1);
-            stepper_set_speed_rpm(stepper2, 1);
+            pio_stepper_set_speed_rpm(stepper2, 1);
             if (d){
                 stepper_rotate_degrees(stepper1,360);
                 pio_stepper_rotate_degrees(stepper2,360);
@@ -275,12 +289,12 @@ void My_Platform_Test(void){
     #if Use_Adc
     // ADC Test
     printf("ADC Test:\n");
-    printf("Poti 1 : %d", my_adc_sampelandread(poti1));
-    printf("Poti 2 : %d", my_adc_sampelandread(poti2));
+    printf("Poti 1 : %d\n", my_adc_sampelandread(poti1));
+    printf("Poti 2 : %d\n", my_adc_sampelandread(poti2));
     my_adc_sampel(poti1);
     my_adc_sampel(poti2);
-    printf("Poti 1 : %d", my_adc_get(poti1));
-    printf("Poti 2 : %d", my_adc_get(poti2));
+    printf("Poti 1 : %d\n", my_adc_get(poti1));
+    printf("Poti 2 : %d\n", my_adc_get(poti2));
     #endif
     /********************************************************************************************************/
     #if (Use_PID_Driver && Use_Button && Use_Adc && Use_Stepper_Motor_With_Repeating_Timer)
@@ -296,7 +310,7 @@ void My_Platform_Test(void){
     int16_t toleranz = 0;
     float sollspeed = 0;
     while(true){
-        if (button_get(button1)){
+        if (!button_get(button1)){
             wert = my_adc_sampelandread(poti1);
             toleranz = wert / 40 +10;
             delta = (altwert - wert);
@@ -310,6 +324,10 @@ void My_Platform_Test(void){
             }
             altwert = wert;
             sleep_ms(100);
+        }
+        if (!button_get(button2)){
+            sleep_ms(100);
+            stepper_reset_position(stepper1);
         }
     }
     #endif

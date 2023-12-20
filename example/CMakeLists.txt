@@ -11,7 +11,7 @@ include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 add_compile_options(-include "${CMAKE_CURRENT_LIST_DIR}/pico-motor-controller-lib/lib/include/includemyPicolib_config.h")
 
 # Set name of project (as PROJECT_NAME) and C/C++ standards
-project(PAIND C CXX ASM)
+project(Example C CXX ASM)
 
 # Creates a pico-sdk subdirectory in our project for the libraries
 pico_sdk_init()

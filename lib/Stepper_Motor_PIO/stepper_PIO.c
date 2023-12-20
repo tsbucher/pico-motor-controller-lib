@@ -27,7 +27,7 @@ typedef struct {
     #if Stepper_Accelerate_Repeating_Timer                  
     uint8_t count;                                  
     float delta;                                        
-    struct repeating_timer timer2;                          
+    struct repeating_timer accel_timer;                          
     #endif      
 } pio_stepper_t;
 
@@ -169,8 +169,8 @@ void pio_stepper_accelerate(pio_stepper_Handle_t stepper,float endspeed, int tim
     #if Stepper_Accelerate_Repeating_Timer
         s->delta = delta;
         s->count = 20;
-        if (!s->timer2.alarm_id){
-        if(!add_repeating_timer_ms(-(time_ms/20), repeating_timer_callback_pio_stepper_a, s, &(s->timer2)))
+        if (!s->accel_timer.alarm_id){
+        if(!add_repeating_timer_ms(-(time_ms/20), repeating_timer_callback_pio_stepper_a, s, &(s->accel_timer)))
             printf("Errore: failed to initialise a new timer. file \"%s\", line %d\n",__FILE__,__LINE__);
     }  
     #else
@@ -201,7 +201,9 @@ void pio_stepper_release(pio_stepper_Handle_t stepper) {
         printf("Errore: Wrong handletype, should be a handle of a pio-stepper. file \"%s\", line %d\n",__FILE__,__LINE__);
         return;
     }
-    cancel_repeating_timer(&s->timer2);
+    #if Stepper_Accelerate_Repeating_Timer
+    cancel_repeating_timer(&s->accel_timer);
+    #endif
     SET_DIRECTION_MOTOR_p(stop);
 }
 
@@ -222,7 +224,7 @@ bool pio_stepper_rotate_steps(pio_stepper_Handle_t stepper, int32_t steps) {
         return false;
     }
     if (s->mode == half){
-            SET_DIRECTION_MOTOR_h(s->direction);
+        SET_DIRECTION_MOTOR_h(s->direction);
     }else if (s->mode == singel){
         SET_DIRECTION_MOTOR_s(s->direction);
     }

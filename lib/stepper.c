@@ -207,6 +207,7 @@ void stepper_release(stepper_Handle_t stepper) {
     }
     cancel_repeating_timer(&s->timer2);
     cancel_repeating_timer(&s->timer);
+    s->steps = 0;
     gpio_put_masked(s->gpio_mask, 0);
 }
 

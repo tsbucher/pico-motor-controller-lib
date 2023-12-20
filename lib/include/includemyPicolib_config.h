@@ -4,23 +4,23 @@
 
 /*********************************************************************************/
 /*Configuration*/
-
+/*This file is used to cofigure the use of the pico-motor-controller-lib*/
 /*********************************************************************************/
 /*on board LED*/
-#define Use_Led             (1)
+#define Use_Led             (1)     
 /*********************************************************************************/
 /*ADC*/
-#define Use_Adc             (1)
+#define Use_Adc             (1)     
 #if Use_Adc
-    #define Adc_Mean_Enable (0)
-    #define Adc_Mean_Num    (100)
+    #define Adc_Mean_Enable (0)     //<-activate the buffer for the ADC
+    #define Adc_Mean_Num    (100)   //sets the length for the buffer
 #endif
 /*********************************************************************************/
 /*Switch(Digital Input)*/
-#define Use_Button          (1)
+#define Use_Button          (1)     //<-activate the button_t(is used to read digital inputs)
 /*********************************************************************************/
 /*Quadraturencoder*/
-#define Use_Quadrature_Encoder                  (1)
+#define Use_Quadrature_Encoder                  (1)     
 #if Use_Quadrature_Encoder
     #define Quadrature_Encoder_PIO              (pio1) 
     #define Quadrature_Encoder_Periode          (25)  /*in ms*/
@@ -31,7 +31,7 @@
 #if Use_DC_Motor
     #if Use_Quadrature_Encoder
         #define Use_PID_Driver                      (1)
-        #define PID_PERIOD                          (50)                      //sampling time in ms
+        #define PID_PERIOD                          (50)       //sampling time in ms
     #endif    
 #endif
 /*********************************************************************************/

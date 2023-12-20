@@ -229,6 +229,7 @@ void PID_drive_SetSpeed(pid_drive_Handle_t pid_drive,float speed)
     pid_drive_t *d = (pid_drive_t *)pid_drive;
     if(d->handletype != piddrive_type){
         printf("Errore: Wrong handletype, should be a handle of a pid_drive. file \"%s\", line %d\n",__FILE__,__LINE__);
+        printf("%d\n",d->handletype);
         return ;
     }
     d->targetSpeed = speed;

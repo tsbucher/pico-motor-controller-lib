@@ -1,4 +1,9 @@
-
+/*
+ * Copyright (c) 2023 Daniel Bucher
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ * 
+ */
 
 #ifndef my_platform_h
 #define my_platform_h
