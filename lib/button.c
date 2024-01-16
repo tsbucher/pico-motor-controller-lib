@@ -46,7 +46,7 @@ void button_irq_handler(void) {
         if (gpio_get_irq_event_mask(buttonlist[i].gpio ) &(GPIO_IRQ_EDGE_RISE)) {
         gpio_acknowledge_irq(buttonlist[i].gpio, GPIO_IRQ_EDGE_RISE);
         buttonlist[i].status = true;
-        printf("button %d,rising edge\n", i);
+        // printf("button %d,rising edge\n", i);
         if(buttonlist[i].debounce){
             gpio_set_irq_enabled(buttonlist[i].gpio, buttonlist[i].event, false);
             add_alarm_in_ms(debounce_delay_time, alarm_callback_button, &(buttonlist[i]), false);
@@ -54,7 +54,7 @@ void button_irq_handler(void) {
     }else if (gpio_get_irq_event_mask(buttonlist[i].gpio ) &(GPIO_IRQ_EDGE_FALL)) {
         gpio_acknowledge_irq(buttonlist[i].gpio, GPIO_IRQ_EDGE_FALL);
         buttonlist[i].status = false;
-        printf("button %d,falling edge\n", i);
+        // printf("button %d,falling edge\n", i);
         if(buttonlist[i].debounce){
             gpio_set_irq_enabled(buttonlist[i].gpio, buttonlist[i].event, false);
             add_alarm_in_ms(debounce_delay_time, alarm_callback_button, &(buttonlist[i]), false);
@@ -66,11 +66,10 @@ void button_irq_handler(void) {
 button_Handle_t button_init(uint8_t gpio, uint32_t event, pull_t pull, bool debounce){
     if(buttoncounter == buttonlist_storagesize) return NULL;
     button_t *handle = &(buttonlist[buttoncounter]);
-    buttonlist[buttoncounter].status = false;
     buttonlist[buttoncounter].gpio = gpio;
     buttonlist[buttoncounter].event = (event | GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE);
     buttonlist[buttoncounter].debounce = debounce;
-    buttoncounter ++;
+    
     handle->handletype = button_type;
     gpio_init(gpio);
     gpio_set_dir(gpio, GPIO_IN);
@@ -80,6 +79,9 @@ button_Handle_t button_init(uint8_t gpio, uint32_t event, pull_t pull, bool debo
     else if (pull == pull_down){
         gpio_pull_down(gpio);
     }
+    sleep_ms(10);
+    buttonlist[buttoncounter].status = gpio_get(gpio);
+    buttoncounter ++;
     gpio_set_irq_enabled(gpio, handle->event, true);   
     gpio_add_raw_irq_handler(gpio, button_irq_handler);
     irq_set_enabled(IO_IRQ_BANK0, true);

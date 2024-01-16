@@ -17,8 +17,8 @@
 #if Use_Stepper_Motor_With_Repeating_Timer
 
 typedef enum {
-    forward = 1,
-    backward = -1
+    forward = -1,
+    backward = 1
 } stepper_direction_t;
 
 typedef void *stepper_Handle_t;

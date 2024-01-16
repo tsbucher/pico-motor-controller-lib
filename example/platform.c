@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2023 Daniel Bucher
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ * 
+ */
+
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "includemyPicolib_config.h"
@@ -93,7 +100,7 @@ void My_Platform_Init(void){
     /********************************************************************************************************/
     #if Use_Stepper_Motor_With_Repeating_Timer
     //Stepper Initalisiert
-    stepper1 = stepper_init(Stepper1_A1, Stepper1_B1, Stepper1_A2, Stepper1_B2, Steps_Per_Revolution, Single);
+    stepper1 = stepper_init(Stepper1_A1, Stepper1_B1, Stepper1_A2, Stepper1_B2, Steps_Per_Revolution, Power);
     if (stepper1 == NULL) printf("Error\n");
     printf("stepper initalisiert\n");
     #endif

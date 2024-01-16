@@ -15,9 +15,11 @@
 typedef struct {
     my_handletype_t handletype;
     int32_t position;
+    int32_t position_output;
     float speed;
     uint32_t gpio_mask;
     bool halfsteps;
+    bool ismoving;
     uint32_t stepping_sequence[8];
     stepper_direction_t direction;
     int32_t steps;
@@ -37,11 +39,13 @@ bool repeating_timer_callback_stepper(struct repeating_timer *t){
     stepper_t *s = (stepper_t*)stepper;
     // printf("Repeating timer callback at: %lld with steps :%d \n", time_us_64(), s->steps);
     if (s->steps == 0) {
+        s->ismoving = false;
         cancel_repeating_timer(t); 
     }else{
-        s->steps -= s->direction;
+        s->steps += s->direction;
         stepper_step_once(stepper);
         if (s->steps == 0) {
+            s->ismoving = false;
             cancel_repeating_timer(t); 
         }
     }
@@ -190,6 +194,12 @@ void stepper_step_once(stepper_Handle_t stepper) {
     } else if (s->position < 0) {
         s->position = s->steps_per_revolution - 1;
     }
+    s->position_output -= s->direction;
+    if (s->position_output >= s->steps_per_revolution) {
+        s->position_output = 0;
+    } else if (s->position_output < 0) {
+        s->position_output = s->steps_per_revolution - 1;
+    }
     if (s->halfsteps){
         gpio_put_masked(s->gpio_mask, s->stepping_sequence[s->position % 8]);
     }else{
@@ -208,6 +218,7 @@ void stepper_release(stepper_Handle_t stepper) {
     cancel_repeating_timer(&s->timer2);
     cancel_repeating_timer(&s->timer);
     s->steps = 0;
+    s->ismoving = false;
     gpio_put_masked(s->gpio_mask, 0);
 }
 
@@ -217,7 +228,7 @@ void stepper_rotate_steps(stepper_Handle_t stepper, int32_t steps) {
     if(s->handletype != stepper_type){
         printf("Errore: Wrong handletype, should be a handle of a stepper. file \"%s\", line %d\n",__FILE__,__LINE__);
         return ;
-    }
+    }    
     s->steps += steps;
     if (s->steps > 0) {
         s->direction = forward;
@@ -226,9 +237,12 @@ void stepper_rotate_steps(stepper_Handle_t stepper, int32_t steps) {
     }else{
         return;
     }
+    s->ismoving = true;
     if (((s->timer).alarm_id) == 0){
         int64_t delay_us;
-        if (s->speed == 0) return;
+        if (s->speed == 0) {
+            return;
+        }
         if (s->halfsteps){
             delay_us = (6e7 / (float)(s->steps_per_revolution*2) / s->speed) / 2;
         }else{
@@ -237,7 +251,7 @@ void stepper_rotate_steps(stepper_Handle_t stepper, int32_t steps) {
         (s->timer).delay_us = delay_us;
         if(!add_repeating_timer_us(-(delay_us), repeating_timer_callback_stepper, s, &(s->timer)))
             printf("Errore: failed to initialise a new timer. file \"%s\", line %d\n",__FILE__,__LINE__);
-    }    
+    } 
 }
 
 void stepper_rotate_degrees(stepper_Handle_t stepper, float degrees){
@@ -263,11 +277,7 @@ bool stepper_is_moving(stepper_Handle_t stepper){
         printf("Errore: Wrong handletype, should be a handle of a stepper. file \"%s\", line %d\n",__FILE__,__LINE__);
         return true;
     }
-    if ((s->timer).alarm_id){
-        return true;
-    }else{
-        return false;
-    }
+    return s->ismoving;
 }
 
 int32_t stepper_get_position(stepper_Handle_t stepper){
@@ -277,7 +287,7 @@ int32_t stepper_get_position(stepper_Handle_t stepper){
         printf("Errore: Wrong handletype, should be a handle of a stepper. file \"%s\", line %d\n",__FILE__,__LINE__);
         return 0;
     }
-    return s->position;
+    return s->position_output;
 }
 
 void stepper_reset_position(stepper_Handle_t stepper){
@@ -287,7 +297,7 @@ void stepper_reset_position(stepper_Handle_t stepper){
         printf("Errore: Wrong handletype, should be a handle of a stepper. file \"%s\", line %d\n",__FILE__,__LINE__);
         return ;
     }
-    s->position = 0;
+    s->position_output = 0;
 }
 
 
@@ -298,7 +308,7 @@ int16_t stepper_get_position_degrees(stepper_Handle_t stepper){
         printf("Errore: Wrong handletype, should be a handle of a stepper. file \"%s\", line %d\n",__FILE__,__LINE__);
         return 0;
     }
-    return (int16_t)(360 * s->position / (int)s->steps_per_revolution);
+    return (int16_t)(360 * s->position_output / (int)s->steps_per_revolution);
 }
 
 stepper_Handle_t stepper_deinit(stepper_Handle_t stepper){
